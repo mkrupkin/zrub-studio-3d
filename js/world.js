@@ -250,7 +250,9 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
 
   // ── winding dirt path draped over a ridge (the iconic 7cars line) ──
   (function buildPath() {
-    const ctrl = [[-2, 10], [6, -4], [-4, -18], [4, -32], [-5, -48], [3, -64], [-2, -82]]
+    // runs from the foreground up to the far crest and "over the hill" toward the
+    // photo's road (which reaches the horizon centre-right) — no abrupt break
+    const ctrl = [[-2, 10], [6, -4], [-4, -18], [4, -32], [-5, -48], [2, -66], [-1, -88], [5, -115], [11, -150], [16, -185]]
       .map(([x, z]) => new THREE.Vector3(x, 0, z));
     const curve = new THREE.CatmullRomCurve3(ctrl, false, 'catmullrom', 0.4);
     const N = 200, W = 1.05, pts = curve.getPoints(N);
