@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ЗРУБ — подорож крізь дерев'яний дім</title>
+  <meta name="description" content="Іммерсивний 3D-сайт майстерні зрубів. Летіть крізь ліс, проєктуйте дім у просторі." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..700&family=Karla:ital,wght@0,300..800;1,300..600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ░░ persistent 3D world (fixed, full-viewport) ░░ -->
+  <canvas id="world-canvas"></canvas>
+  <div id="loader"><span class="loader-word">рубаємо простір…</span></div>
+
+  <!-- ░░ fixed nav ░░ -->
+  <header class="nav">
+    <a class="brand" href="#s-hero">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M4 30 L20 8 L36 30" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="9" y1="30" x2="31" y2="30" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="12.5" y1="24" x2="27.5" y2="24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="brand-word">ЗРУБ<em>.студія</em></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#s-craft">Ремесло</a>
+      <a href="#s-studio">Конфігуратор</a>
+      <a href="#s-work">Роботи</a>
+      <a href="#s-contact" class="nav-cta">Порахувати</a>
+    </nav>
+  </header>
+
+  <!-- ░░ progress rail ░░ -->
+  <div class="progress-rail" aria-hidden="true">
+    <span class="pr-dot" data-to="0"></span>
+    <span class="pr-dot" data-to="0.22"></span>
+    <span class="pr-dot" data-to="0.5"></span>
+    <span class="pr-dot" data-to="0.78"></span>
+    <span class="pr-dot" data-to="1"></span>
+    <span class="pr-fill" id="pr-fill"></span>
+  </div>
+
+  <!-- ░░ scrollytelling steps (float over the 3D world) ░░ -->
+  <main class="stage">
+
+    <section class="step" id="s-hero">
+      <div class="panel panel-lg glass">
+        <p class="eyebrow"><span class="dot"></span>Іммерсивна майстерня зрубів</p>
+        <h1 class="giant">
+          <span>Увійдіть</span>
+          <span class="ital">у дім</span>
+          <span>з дерева.</span>
+        </h1>
+        <p class="lede">Це не сторінка — це подорож. Крутіть колесо й летіть галявиною крізь ліс, повз наші зруби. Проєктуйте власний дім прямо в просторі.</p>
+        <div class="scroll-cue"><span>гортайте, щоб рушити</span><i></i></div>
+      </div>
+    </section>
+
+    <section class="step" id="s-craft">
+      <div class="panel glass">
+        <span class="step-num">01 · Ремесло</span>
+        <h2>Рубано вручну,<br>складено з любов'ю</h2>
+        <ul class="mini-list">
+          <li><b>Зимова смерека й дуб</b> — сушіння, калібр діаметра.</li>
+          <li><b>Замок «в чашу»</b> — щільний, теплий, без металу в кутах.</li>
+          <li><b>Цифрова розмітка</b> вінців до сантиметра.</li>
+          <li><b>Збірка на місці</b> за маркуванням — без сюрпризів.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="step step-right" id="s-studio">
+      <div class="panel panel-ctrl glass">
+        <span class="step-num">02 · Конфігуратор</span>
+        <h3>Спроєктуй свій зруб</h3>
+        <p class="vp-live" id="vp-dims">8.0 × 6.0 м</p>
+
+        <div class="ctrl-row">
+          <label>Довжина <output id="out-length">8.0 м</output></label>
+          <input id="in-length" type="range" min="5" max="14" step="0.5" value="8" />
+        </div>
+        <div class="ctrl-row">
+          <label>Ширина <output id="out-width">6.0 м</output></label>
+          <input id="in-width" type="range" min="4" max="10" step="0.5" value="6" />
+        </div>
+        <div class="ctrl-row">
+          <label>Вінців <output id="out-courses">14</output></label>
+          <input id="in-courses" type="range" min="8" max="22" step="1" value="14" />
+        </div>
+        <div class="ctrl-row">
+          <label>Дах <output id="out-roof">42°</output></label>
+          <input id="in-roof" type="range" min="25" max="55" step="1" value="42" />
+        </div>
+        <div class="ctrl-row">
+          <label>Колода <output id="out-dia">26 см</output></label>
+          <input id="in-dia" type="range" min="20" max="36" step="2" value="26" />
+        </div>
+
+        <div class="swatches" id="wood-swatches">
+          <button class="swatch is-active" data-wood="pine"  style="--sw:#c98f52" title="Смерека"></button>
+          <button class="swatch" data-wood="oak"   style="--sw:#9a6531" title="Дуб"></button>
+          <button class="swatch" data-wood="ash"   style="--sw:#d8b483" title="Ясен"></button>
+          <button class="swatch" data-wood="smoke" style="--sw:#5c4327" title="Морений"></button>
+          <div class="segmented" id="roof-type">
+            <button class="seg is-active" data-roof="gable">двосхилий</button>
+            <button class="seg" data-roof="hip">вальмовий</button>
+          </div>
+        </div>
+
+        <div class="estimate">
+          <div class="est-row"><span>Площа</span><b id="est-area">— м²</b></div>
+          <div class="est-row"><span>Колод</span><b id="est-logs">—</b></div>
+          <div class="est-row"><span>Деревина</span><b id="est-vol">— м³</b></div>
+          <div class="est-total"><span>Орієнтовно</span><b id="est-price">—</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step" id="s-work">
+      <div class="panel glass">
+        <span class="step-num">03 · Роботи</span>
+        <h2>Зі стружки —<br>у стіни</h2>
+        <p class="lede">Довкола вас — наші зруби, розставлені галявиною. Дім «Верховина», лазня «Потік», садиба «Тиха ріка». Кожен рубаний вручну.</p>
+        <div class="tags">
+          <span>112 м² · смерека Ø28</span>
+          <span>лазня · дуб</span>
+          <span>186 м² · мансарда</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="step step-right" id="s-contact">
+      <div class="panel glass">
+        <span class="step-num">04 · Контакт</span>
+        <h3>Порахуємо ваш зруб</h3>
+        <p class="lede-sm">Надішліть параметри з конфігуратора — повернемось із розміткою й кошторисом за 2 дні.</p>
+        <form class="mini-form" onsubmit="return false">
+          <input type="text" placeholder="Ваше ім'я" />
+          <input type="tel" placeholder="+38" />
+          <button class="btn-solid" type="submit">Надіслати заявку →</button>
+        </form>
+        <div class="contact-lines">
+          <a href="mailto:hello@zrub.studio">hello@zrub.studio</a>
+          <a href="tel:+380000000000">+38 (0__) ___-__-__</a>
+          <span>Івано-Франківська обл. · майстерня з 2009</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

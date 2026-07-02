@@ -1,0 +1,8 @@
+# stock/reference photos — user must provide their own licensed backdrop
+assets/*.jpg
+assets/*.jpeg
+assets/*.png
+
+__pycache__/
+.DS_Store
+Thumbs.db
