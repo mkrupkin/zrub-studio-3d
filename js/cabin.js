@@ -106,6 +106,15 @@ export function buildCabin(cfg = {}) {
 
   const wallTopY = baseY + (courses - 1) * COURSE + dia / 2;
 
+  // solid inner wall shell — backs the round logs so no daylight shows through the grooves between them
+  const shellH = wallTopY - 0.35;
+  const shell = new THREE.Mesh(
+    new THREE.BoxGeometry(L - dia * 0.4, shellH, W - dia * 0.4),
+    new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.95 })
+  );
+  shell.position.y = 0.35 + shellH / 2;
+  group.add(shell);
+
   // door
   const doorH = doorTopCourse * COURSE;
   const door = new THREE.Mesh(
