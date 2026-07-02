@@ -53,12 +53,13 @@ export function buildCabin(cfg = {}) {
   });
   const endMat = new THREE.MeshStandardMaterial({ color: w.end, map: END_DIFF, roughness: w.rough * 0.9 });
 
-  // stone foundation
+  // stone foundation — extends well below ground so terrain undulation never
+  // shows a gap or lets the logs sink into the grass
   const pad = new THREE.Mesh(
-    new THREE.BoxGeometry(L + overhang * 2 + 0.4, 0.5, W + overhang * 2 + 0.4),
+    new THREE.BoxGeometry(L + overhang * 2 + 0.4, 3.0, W + overhang * 2 + 0.4),
     new THREE.MeshStandardMaterial({ color: 0x6f6a60, roughness: 1 })
   );
-  pad.position.y = 0.25;
+  pad.position.y = 0.5 - 1.5;              // top stays at y=0.5 (logs start above), bottom buried at −2.5
   pad.castShadow = pad.receiveShadow = true;
   group.add(pad);
 

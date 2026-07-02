@@ -330,17 +330,24 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
 
   // ── cabins ──
   const ground = (x, z) => terrainH(x, z);
+  // highest terrain point under a cabin footprint → base sits on it, no corner sinks into the grass
+  function groundMax(x, z, L = 8, W = 6) {
+    let m = -Infinity;
+    for (const dx of [-L / 2, 0, L / 2]) for (const dz of [-W / 2, 0, W / 2]) m = Math.max(m, terrainH(x + dx, z + dz));
+    return m;
+  }
   function placeCabin(cfg, x, z, rotY = 0) {
-    const c = buildCabin(cfg); c.position.set(x, ground(x, z), z); c.rotation.y = rotY; scene.add(c); return c;
+    const c = buildCabin(cfg); c.position.set(x, groundMax(x, z, cfg.length, cfg.width), z); c.rotation.y = rotY; scene.add(c); return c;
   }
   placeCabin({ length: 9, width: 6.5, courses: 15, roofDeg: 52, diaCm: 28, wood: 'pine', porch: true }, 0, 3, -0.3);  // tall gable + veranda
 
-  let configCabin = null;
+  let configCabin = null, configSpin = 0;
   const CFGP = { x: 32, z: -4 };
   function updateConfigCabin(cfg) {
     if (configCabin) { scene.remove(configCabin); disposeGroup(configCabin); }
     configCabin = buildCabin(cfg);
-    configCabin.position.set(CFGP.x, ground(CFGP.x, CFGP.z), CFGP.z);
+    configCabin.position.set(CFGP.x, groundMax(CFGP.x, CFGP.z, cfg.length, cfg.width), CFGP.z);
+    configCabin.rotation.y = configSpin;      // keep current spin angle across rebuilds
     scene.add(configCabin);
     if (onStats) onStats(configCabin.userData.stats);
   }
@@ -386,14 +393,14 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
   const camPts = [
     new THREE.Vector3(0, gy(0, 40) + 13, 46),          // hero: meadow + cabins in foreground, whole photo behind
     new THREE.Vector3(-8, gy(-8, 30) + 11, 34),        // craft
-    new THREE.Vector3(52, gy(52, 8) + 8, 15),          // configurator approach
-    new THREE.Vector3(52, gy(52, 8) + 8, 15),          // configurator: whole cabin framed, backdrop behind
+    new THREE.Vector3(49, gy(49, 6) + 10, 15),         // configurator approach
+    new THREE.Vector3(49, gy(49, 6) + 10, 15),         // configurator: cabin large but fully framed through a 360° spin
     new THREE.Vector3(10, gy(10, 30) + 12, 36),        // gallery sweep
     new THREE.Vector3(44, gy(44, 6) + 9, 22),          // contact
   ];
   const lookPts = [
     new THREE.Vector3(0, 44, -160),  new THREE.Vector3(-2, 34, -150),
-    new THREE.Vector3(31, 4, -6),    new THREE.Vector3(31, 4, -6),
+    new THREE.Vector3(32, 5, -4),    new THREE.Vector3(32, 5, -4),
     new THREE.Vector3(-4, 30, -150), new THREE.Vector3(36, 6, -20),
   ];
   const camCurve = new THREE.CatmullRomCurve3(camPts, false, 'catmullrom', 0.4);
@@ -459,7 +466,8 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
     shadowTex.offset.x -= dt * 0.006;   // cloud shadows drift across the meadow, same way as the clouds
     const nf = Math.max(0, (s - 0.8) / 0.2);
     fire.intensity = nf * (2.6 + Math.sin(t * 0.02) * 0.8);
-    if (configCabin && s > CFG_RANGE[0] && s < CFG_RANGE[1]) configCabin.rotation.y += dt * 0.12;
+    // configurator cabin spins a full 360° so every side is visible
+    if (configCabin && s > 0.35) { configSpin += dt * 0.35; configCabin.rotation.y = configSpin; }
     composer.render();
     if (first) { first = false; onReady && onReady(); }
   }
