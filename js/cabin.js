@@ -66,7 +66,7 @@ export function buildCabin(cfg = {}) {
   // real logs are scribed into a groove — each sits DEEP on the one below, no gap.
   // heavy overlap (0.6 of a diameter) simulates the tight seam; also flatten each
   // log a touch vertically so the contact face is flush like a profiled beam.
-  const COURSE = dia * 0.6;
+  const COURSE = dia * 0.56;
   const doorHalf = 0.55;
   const doorTopCourse = Math.min(courses - 2, Math.round(courses * 0.62));
   let logCount = 0;
@@ -181,6 +181,29 @@ export function buildCabin(cfg = {}) {
   const chim = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.6, 0.6), new THREE.MeshStandardMaterial({ color: 0x7a6a5a, roughness: 1 }));
   chim.position.set(L * 0.28, wallTopY + roofH * 0.65, 0.3); chim.castShadow = true;
   group.add(chim);
+
+  // ── optional front porch / veranda (a covered overhang on posts + a rail) ──
+  if (cfg.porch) {
+    const pDepth = 2.2, frontZ = -W / 2 - dia / 2, porchZ = frontZ - pDepth;
+    const postMat = logMat();
+    const beamY = 0.5 + doorH + 0.5;
+    // porch floor
+    const floor = new THREE.Mesh(new THREE.BoxGeometry(L * 0.9, 0.25, pDepth),
+      new THREE.MeshStandardMaterial({ color: 0x8a6a44, map: END_DIFF, roughness: 0.7 }));
+    floor.position.set(0, 0.55, frontZ - pDepth / 2); floor.receiveShadow = true; group.add(floor);
+    // 3 posts
+    for (const px of [-L * 0.4, 0, L * 0.4]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(dia / 3, dia / 3, beamY, 12), postMat);
+      post.position.set(px, 0.55 + beamY / 2, porchZ + 0.15); post.castShadow = true; group.add(post);
+    }
+    // porch roof (single slope out from the wall)
+    const pr = new THREE.Mesh(new THREE.BoxGeometry(L * 0.94, 0.14, pDepth + 0.5), roofMat);
+    pr.position.set(0, beamY + 0.6, frontZ - pDepth / 2 + 0.1);
+    pr.rotation.x = -0.28; pr.castShadow = true; group.add(pr);
+    // rail beam
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(dia / 5, dia / 5, L * 0.9, 8), postMat);
+    rail.rotation.z = Math.PI / 2; rail.position.set(0, 1.35, porchZ + 0.15); group.add(rail);
+  }
 
   group.userData = {
     stats: { area: L * W, logCount, volume: Math.PI * (dia / 2) ** 2 * (L + W) * courses, L, W },

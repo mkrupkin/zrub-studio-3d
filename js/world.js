@@ -188,6 +188,19 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
   terrain.receiveShadow = true;
   scene.add(terrain);
 
+  // ── moving cloud shadows drifting across the meadow (synced with the clouds) ──
+  const shadowTex = makeCloudTexture();          // white blobs → used as alphaMap = dark patches where clouds block the sun
+  shadowTex.wrapS = shadowTex.wrapT = THREE.RepeatWrapping;
+  shadowTex.repeat.set(4, 4);
+  const cloudShadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(420, 340, 1, 1),
+    new THREE.MeshBasicMaterial({ color: 0x1c2a12, transparent: true, opacity: 0.32, alphaMap: shadowTex, depthWrite: false })
+  );
+  cloudShadow.rotation.x = -Math.PI / 2;
+  cloudShadow.position.set(0, 1.4, -40);
+  cloudShadow.renderOrder = 1;
+  scene.add(cloudShadow);
+
   // ── layered distant ridges (atmospheric perspective) ──
   function ridgeRing(radius, baseY, height, hazeAmt, seed) {
     const seg = 160, verts = [], cols = [];
@@ -318,7 +331,7 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
   function placeCabin(cfg, x, z, rotY = 0) {
     const c = buildCabin(cfg); c.position.set(x, ground(x, z), z); c.rotation.y = rotY; scene.add(c); return c;
   }
-  placeCabin({ length: 9, width: 6.5, courses: 15, roofDeg: 45, diaCm: 28, wood: 'pine' }, 0, 3, -0.3);
+  placeCabin({ length: 9, width: 6.5, courses: 15, roofDeg: 52, diaCm: 28, wood: 'pine', porch: true }, 0, 3, -0.3);  // tall gable + veranda
 
   let configCabin = null;
   const CFGP = { x: 32, z: -4 };
@@ -331,9 +344,9 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
   }
   updateConfigCabin({ length: 8, width: 6, courses: 14, roofDeg: 42, diaCm: 26, wood: 'pine', roof: 'gable' });
 
-  placeCabin({ length: 7, width: 5, courses: 12, roofDeg: 40, diaCm: 24, wood: 'oak' }, -30, 6, 0.6);
-  placeCabin({ length: 6, width: 4.5, courses: 10, roofDeg: 38, diaCm: 22, wood: 'ash' }, -16, -10, -0.5);
-  placeCabin({ length: 10, width: 7, courses: 16, roofDeg: 46, diaCm: 30, wood: 'smoke', roof: 'hip' }, 8, -24, 0.9);  // moved off the configurator sightline
+  placeCabin({ length: 7, width: 5, courses: 18, roofDeg: 34, diaCm: 24, wood: 'oak', porch: true }, -30, 6, 0.6);     // two-storey + porch, low roof
+  placeCabin({ length: 6, width: 4.5, courses: 9, roofDeg: 48, diaCm: 22, wood: 'ash', roof: 'hip' }, -16, -10, -0.5); // small hip-roof cottage
+  placeCabin({ length: 11, width: 7, courses: 13, roofDeg: 42, diaCm: 32, wood: 'smoke', roof: 'hip', porch: true }, 8, -24, 0.9); // wide hip villa + veranda
 
   const hayMat = new THREE.MeshStandardMaterial({ color: 0x9c8340, roughness: 1, envMapIntensity: 0.2 });
   for (const [hx, hz] of [[-8, -6], [24, 6], [-22, 7]]) {
@@ -441,6 +454,7 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
       c.position.x += c.userData.drift * dt;
       if (c.position.x > 300) c.position.x = -300;
     });
+    shadowTex.offset.x -= dt * 0.006;   // cloud shadows drift across the meadow, same way as the clouds
     const nf = Math.max(0, (s - 0.8) / 0.2);
     fire.intensity = nf * (2.6 + Math.sin(t * 0.02) * 0.8);
     if (configCabin && s > CFG_RANGE[0] && s < CFG_RANGE[1]) configCabin.rotation.y += dt * 0.12;
