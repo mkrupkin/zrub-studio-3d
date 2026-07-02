@@ -4,14 +4,15 @@
 // ═══════════════════════════════════════════════
 import * as THREE from 'three';
 
+// bright honey peeled-log tones (real зруб — light smooth wood, not dark bark)
 export const WOOD = {
-  pine:  { base: 0xc98f52, end: 0xe4c395, rough: 0.82 },
-  oak:   { base: 0x9a6531, end: 0xc08a4a, rough: 0.78 },
-  ash:   { base: 0xd8b483, end: 0xefd7ac, rough: 0.85 },
-  smoke: { base: 0x5c4327, end: 0x7a5a37, rough: 0.7 },
+  pine:  { base: 0xe4b674, end: 0xf0d3a0, rough: 0.62 },
+  oak:   { base: 0xd39a55, end: 0xe4bd82, rough: 0.6 },
+  ash:   { base: 0xecd0a0, end: 0xf4e2c0, rough: 0.66 },
+  smoke: { base: 0x9a7038, end: 0xb89258, rough: 0.55 },
 };
 
-// ── shared PBR wood textures (loaded once; graceful fallback to flat colour) ──
+// ── shared PBR textures (loaded once; graceful fallback to flat colour) ──
 const _tl = new THREE.TextureLoader();
 function _tex(url, { srgb = false, rep = 2 } = {}) {
   const t = _tl.load(url, x => { x.wrapS = x.wrapT = THREE.RepeatWrapping; x.repeat.set(rep, rep); }, undefined, () => {});
@@ -20,12 +21,14 @@ function _tex(url, { srgb = false, rep = 2 } = {}) {
   return t;
 }
 const _P = 'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/';
-const LOG_DIFF  = _tex(_P + 'bark_brown_02/bark_brown_02_diff_2k.jpg', { srgb: true, rep: 3 });
-const LOG_NOR   = _tex(_P + 'bark_brown_02/bark_brown_02_nor_gl_2k.jpg', { rep: 3 });
-const LOG_ROUGH = _tex(_P + 'bark_brown_02/bark_brown_02_rough_2k.jpg', { rep: 3 });
-const SHINGLE_DIFF = _tex(_P + 'wood_planks/wood_planks_diff_2k.jpg', { srgb: true, rep: 4 });
-const SHINGLE_NOR  = _tex(_P + 'wood_planks/wood_planks_nor_gl_2k.jpg', { rep: 4 });
-const END_DIFF  = _tex(_P + 'wood_table_001/wood_table_001_diff_2k.jpg', { srgb: true, rep: 1 });
+// LIGHT smooth wood grain for the logs (not bark)
+const LOG_DIFF  = _tex(_P + 'plywood/plywood_diff_2k.jpg', { srgb: true, rep: 2 });
+const LOG_NOR   = _tex(_P + 'bark_brown_02/bark_brown_02_nor_gl_2k.jpg', { rep: 3 });  // subtle log-surface relief
+const LOG_ROUGH = _tex(_P + 'plywood/plywood_rough_2k.jpg', { rep: 2 });
+// dark slate shingle roof
+const ROOF_DIFF = _tex(_P + 'roof_slates_02/roof_slates_02_diff_2k.jpg', { srgb: true, rep: 4 });
+const ROOF_NOR  = _tex(_P + 'roof_slates_02/roof_slates_02_nor_gl_2k.jpg', { rep: 4 });
+const END_DIFF  = _tex(_P + 'plywood/plywood_diff_2k.jpg', { srgb: true, rep: 1 });
 
 function vary(hex) {
   const c = new THREE.Color(hex);
@@ -60,13 +63,16 @@ export function buildCabin(cfg = {}) {
   group.add(pad);
 
   const baseY = 0.5 + dia / 2;
-  const COURSE = dia * 0.78; // tight vertical step so round logs nest — no gaps
+  // real logs are scribed into a groove — each sits DEEP on the one below, no gap.
+  // heavy overlap (0.6 of a diameter) simulates the tight seam; also flatten each
+  // log a touch vertically so the contact face is flush like a profiled beam.
+  const COURSE = dia * 0.6;
   const doorHalf = 0.55;
   const doorTopCourse = Math.min(courses - 2, Math.round(courses * 0.62));
   let logCount = 0;
 
   function addLog(len, axis, cx, cy, cz) {
-    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(dia / 2, dia / 2, len, 12, 1), logMat());
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(dia / 2, dia / 2, len, 16, 1), logMat());
     mesh.castShadow = mesh.receiveShadow = true;
     if (axis === 'x') { mesh.rotation.z = Math.PI / 2; mesh.position.set(cx, cy, cz); }
     else { mesh.rotation.x = Math.PI / 2; mesh.position.set(cx, cy, 0); }
@@ -129,7 +135,7 @@ export function buildCabin(cfg = {}) {
   // roof
   const roofH = Math.tan(roofDeg * Math.PI / 180) * (W / 2);
   const eave = 0.6;
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x5a4632, map: SHINGLE_DIFF, normalMap: SHINGLE_NOR, roughness: 0.92, side: THREE.DoubleSide });
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x4a4c52, map: ROOF_DIFF, normalMap: ROOF_NOR, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide });
   const gableMat = new THREE.MeshStandardMaterial({ color: vary(w.base), map: LOG_DIFF, normalMap: LOG_NOR, roughness: w.rough });
 
   if (roof === 'gable') {

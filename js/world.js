@@ -105,8 +105,8 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
   renderer.toneMappingExposure = 1.02;
 
   const scene = new THREE.Scene();
-  const HAZE = new THREE.Color(0xc3d2d8);
-  scene.fog = new THREE.FogExp2(HAZE.getHex(), 0.0014);
+  const HAZE = new THREE.Color(0x9fb27a);   // greenish haze so the meadow stays green to its far edge (blends into photo)
+  scene.fog = new THREE.FogExp2(HAZE.getHex(), 0.0009);
 
   const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 1200);
 
@@ -169,8 +169,8 @@ export function createWorld(canvas, { onStats = null, onReady = null } = {}) {
   tGeo.rotateX(-Math.PI / 2);
   const pAttr = tGeo.attributes.position;
   const cAttr = new THREE.BufferAttribute(new Float32Array(pAttr.count * 3), 3);
-  const meadow = new THREE.Color(0x6f9a34), meadowDry = new THREE.Color(0x86a544);  // matched to the photo's foreground green
-  const spruceC = new THREE.Color(0x2c4a26), rockC = new THREE.Color(0x736c5a);
+  const meadow = new THREE.Color(0x83a53a), meadowDry = new THREE.Color(0x9cb356);  // vivid sunlit green matched to the photo
+  const spruceC = new THREE.Color(0x3a5730), rockC = new THREE.Color(0x7a725e);
   const cc = new THREE.Color();
   for (let i = 0; i < pAttr.count; i++) {
     const x = pAttr.getX(i), z = pAttr.getZ(i), h = terrainH(x, z);
